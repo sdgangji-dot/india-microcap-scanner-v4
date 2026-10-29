@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>India Micro & Small-Cap Early Discovery Scanner — Oct 2026 (Master Hub + Filings & News Correlation)</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card: #111827;
+      --card-alt: #172033;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --purple: #a855f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      line-height: 1.55;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .title-group h1 { font-size: 1.45rem; color: #fff; }
+    .title-group p { font-size: 0.85rem; color: var(--muted); }
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .kpi-card .label { font-size: 0.74rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .kpi-card .val { font-size: 1.25rem; font-weight: 700; margin-top: 4px; color: var(--accent); }
+    .kpi-card .sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: #1e293b;
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .tab-btn.master-btn {
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #34d399;
+    }
+    .tab-btn.master-btn.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .tab-btn.new-btn {
+      border-color: rgba(168, 85, 247, 0.5);
+      color: #c084fc;
+    }
+    .tab-btn.new-btn.active {
+      background: rgba(168, 85, 247, 0.18);
+      border-color: var(--purple);
+      color: #fff;
+    }
+    .guide-box {
+      background: var(--card-alt);
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 0.86rem;
+    }
+    .guide-box h3 {
+      font-size: 0.96rem;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .guide-box p {
+      color: #d1d5db;
+      margin-bottom: 6px;
+    }
+    .guide-box .how-to {
+      color: #93c5fd;
+      font-size: 0.82rem;
+      margin-top: 6px;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .controls input {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      min-width: 280px;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      background: #1e293b;
+      color: var(--accent);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tr:hover { background: rgba(56, 189, 248, 0.06); }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .b-green { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+    .b-amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+    .b-red { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+    .b-purple { background: rgba(168, 85, 247, 0.15); color: var(--purple); }
+    .b-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+    .xref-btn {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      margin: 2px;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .xref-btn:hover {
+      background: var(--accent);
+      color: #0b1120;
+    }
+    .doc-link {
+      color: #38bdf8;
+      text-decoration: underline;
+      font-size: 0.76rem;
+      display: inline-block;
+      margin-top: 4px;
+    }
+    .layer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .layer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .layer-card h4 { color: var(--accent); font-size: 0.88rem; margin-bottom: 4px; }
+    .layer-card p { color: var(--muted); font-size: 0.79rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-group">
+      <h1>India Micro-Cap & Small-Cap Early Discovery Scanner</h1>
+      <p>Last Dynamic Scan: Oct 29, 2026 (02:13 PM IST) | Statutory MF Disclosures: Sep-2026 | Warehouse: mf_history.db (10 Tables + AR/Concall & News Correlation)</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <label for="runHistorySelect" style="font-size:0.8rem; color:#93c5fd; font-weight:600;">📅 Historical Run Time-Machine:</label>
+      <select id="runHistorySelect" onchange="switchHistoricalRun(this.value)" style="background:#1e293b; color:#fff; border:1px solid #38bdf8; padding:6px 10px; border-radius:6px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+        <option value="2026-10-25" selected>Oct 25, 2026 Run (Sep-2026 MF Disclosures) — LATEST</option>
+        <option value="2026-09-15">Sep 15, 2026 Run (Aug-2026 MF Disclosures) — Archive</option>
+        <option value="2026-08-15">Aug 15, 2026 Run (Jul-2026 MF Disclosures) — Archive</option>
+      </select>
+      <span class="badge b-green">Google Sites Ready</span>
+    </div>
+  </header>
+  <div id="archiveBanner" style="display:none; background:rgba(245, 158, 11, 0.15); border:1px solid #f59e0b; color:#fcd34d; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:0.84rem;">
+    <strong>⏳ Time-Machine Archive Mode Active:</strong> You are viewing a historical scan snapshot (<span id="archiveDateLabel"></span>). Switch back to <strong>Oct 25, 2026 Run — LATEST</strong> in the top-right dropdown to see current data, or click your Google Sites sidebar to open the full archived page for that date.
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi-card">
+      <div class="label">All-Clear Shortlist</div>
+      <div class="val">6 Stocks Pass All</div>
+      <div class="sub">Meet Early Entry + Clean Forensics</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Top Stage-1 Micro-Cap</div>
+      <div class="val">Concord Control</div>
+      <div class="sub">Score: 86.5/100 | ₹2,476 Cr MCap</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Top Value Migration Pick</div>
+      <div class="val">Felix Industries</div>
+      <div class="sub">Score: 81.0/100 | 14.35x P/E | ₹321 Cr</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Highest CFO Jump (AR)</div>
+      <div class="val">Thaai Casting</div>
+      <div class="sub">FY26 CFO +2,887% to ₹35.44 Cr</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Passive Trap Filtered</div>
+      <div class="val">Cupid Ltd</div>
+      <div class="sub">News Score: 2/10 (98% Index ETFs)</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn master-btn active" onclick="showTab(0)">★ Master Shortlist & Cross-Ref Hub</button>
+    <button class="tab-btn" onclick="showTab(1)">Tab 1: Executive Ranks (/100)</button>
+    <button class="tab-btn" onclick="showTab(2)">Tab 2: Active MF Buying</button>
+    <button class="tab-btn" onclick="showTab(3)">Tab 3: Pre-MF Smart Money</button>
+    <button class="tab-btn" onclick="showTab(4)">Tab 4: Order Book & SME Migration</button>
+    <button class="tab-btn" onclick="showTab(5)">Tab 5: Free-Float Squeeze</button>
+    <button class="tab-btn" onclick="showTab(6)">Tab 6: Forensic Safety Check</button>
+    <button class="tab-btn" onclick="showTab(7)">Tab 7: Value Research 4-Pillar</button>
+    <button class="tab-btn" onclick="showTab(8)">Tab 8: Exits & ETF Trap Audit</button>
+    <button class="tab-btn new-btn" onclick="showTab(9)">★ Tab 9: Annual Reports, Concalls & PPTs</button>
+    <button class="tab-btn new-btn" onclick="showTab(10)">★ Tab 10: News & Shortlist Correlation</button>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search company, ticker, investor, concall keyword, or news across current tab..." onkeyup="filterVisibleTable()" />
+    <span style="font-size:0.8rem; color:var(--muted);">Tip: Click any blue <strong>[Tab X]</strong> button inside the Master Hub to jump straight to that company's detailed evidence!</span>
+  </div>
+
+  <!-- TAB 0: MASTER SHORTLIST & LAYERED CROSS-REFERENCE HUB -->
+  <div class="tab-panel active">
+    <div class="guide-box">
+      <h3>★ Welcome to Your Master Decision Hub (Start Here Every Month)</h3>
+      <p><strong>What this page does:</strong> This page layers all 5 checks on top of each other so you can see at a glance which stocks pass <strong>every single test</strong>: (1) Smart Money Entry, (2) Business Order Book/Migration, (3) Clean Accounting, (4) Fair Valuation, and (5) Annual Report / Concall & News Confirmation.</p>
+      <div class="how-to"><strong>How to use it:</strong> Focus on the <strong>Green "TIER 1: ALL-CLEAR SHORTLIST"</strong> rows below. Click any blue <code>[Tab X]</code> button in that row (including the new <code>[Tab 9: AR/Concall]</code> and <code>[Tab 10: News Corr]</code> buttons) to jump straight to the underlying evidence!</div>
+    </div>
+
+    <div class="layer-grid">
+      <div class="layer-card">
+        <h4>Layer 1 & 2: Smart Money + Catalysts</h4>
+        <p>Are Promoters, HNI investors, or AIFs buying *before* MFs arrive, backed by 2.5x+ order books or SME-to-Mainboard migration? (Tabs 3 & 4)</p>
+      </div>
+      <div class="layer-card">
+        <h4>Layer 3: Mutual Fund Float Squeeze</h4>
+        <p>Are *active* human mutual fund managers soaking up the public shares available for trading (Free Float)? (Tabs 2 & 5)</p>
+      </div>
+      <div class="layer-card">
+        <h4>Layer 4: Accounting & Valuation</h4>
+        <p>Are profits turning into real bank cash (CFO/EBITDA >= 65%) with 0% promoter pledge and reasonable valuation? (Tabs 6, 7 & 8)</p>
+      </div>
+      <div class="layer-card">
+        <h4>Layer 5: Concalls, AR & News Proof</h4>
+        <p>What did management actually say in the latest Annual Report, Earnings Call, & PPT — and did Smart Money buy *before* the news? (Tabs 9 & 10)</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Decision Tier</th>
+            <th>Company (Ticker) & Size</th>
+            <th>Layer 1 & 2: Smart Money & Catalyst</th>
+            <th>Layer 3: Active MF & Float Squeeze</th>
+            <th>Layer 4: Forensics & Valuation</th>
+            <th>Layer 5: AR / Concall & News Correlation</th>
+            <th>Score</th>
+            <th>Plain-English Action & Deep-Dive Links</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge b-green">TIER 1: ALL-CLEAR SHORTLIST</span></td>
+            <td><strong>Concord Control Systems</strong> (543619)<br/><span style="color:var(--muted)">₹2,476 Cr | Stage 1 Micro</span></td>
+            <td>Ashish Kacholia raised stake to 1.64%; ₹697 Cr Order Book (3.3x sales) + ₹280 Cr Kavach order; 100% Mainboard vote</td>
+            <td>1.54% Float Tightening; Mainboard move unlocks MF buying</td>
+            <td><span class="badge b-green">CLEAN</span> 74% Cash Conv | 0% Pledge | VR 4★</td>
+            <td><strong>News Corr: 9.8/10</strong> (Kacholia accumulated *before* 21 Sep Mainboard approval & Kavach win)</td>
+            <td><strong>86.5</strong></td>
+            <td><strong>#1 Early Micro-Cap Pick</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(3, 'Concord')">[Tab 3: HNI]</button>
+              <button class="xref-btn" onclick="jumpToTab(4, 'Concord')">[Tab 4: Orders]</button>
+              <button class="xref-btn" onclick="jumpToTab(9, 'Concord')">[Tab 9: AR/Deck]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Concord')">[Tab 10: News Corr]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-green">TIER 1: ALL-CLEAR SHORTLIST</span></td>
+            <td><strong>Felix Industries</strong> (FELIX)<br/><span style="color:var(--muted)">₹321 Cr | Stage 1 Micro</span></td>
+            <td>Applied to NSE for Mainboard Migration (21 Sep 2026); ZLD water & e-waste recycling ramp-up</td>
+            <td>1.33% Float Tightening; 50.8% Promoter stake</td>
+            <td><span class="badge b-green">CLEAN</span> 72% Cash Conv | 0% Pledge | Cheap 14.4x P/E (VR 4★)</td>
+            <td><strong>News Corr: 9.4/10</strong> (04 Jun PPT & Q4 concall guided ₹15 Cr PO stage + metal recycling)</td>
+            <td><strong>81.0</strong></td>
+            <td><strong>#1 Deep-Value Migration Pick</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(4, 'Felix')">[Tab 4: Migration]</button>
+              <button class="xref-btn" onclick="jumpToTab(7, 'Felix')">[Tab 7: 14x PE]</button>
+              <button class="xref-btn" onclick="jumpToTab(9, 'Felix')">[Tab 9: Concall]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Felix')">[Tab 10: News Corr]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-green">TIER 1: ALL-CLEAR SHORTLIST</span></td>
+            <td><strong>Lumax Industries</strong> (LUMAXIND)<br/><span style="color:var(--muted)">₹4,958 Cr | Stage 2 Upper Micro</span></td>
+            <td>₹2,500 Cr Order Book (90% high-margin LED auto lighting; 38% EV platform share); 75% Promoter stake</td>
+            <td>HDFC MF (+231%) & Quantum Small Cap active buying; 25% public float</td>
+            <td><span class="badge b-green">CLEAN</span> 78% Cash Conv | 0% Pledge | Fair 26.7x P/E (VR 4★)</td>
+            <td><strong>News Corr: 9.2/10</strong> (18 Aug Q1 concall 41% PAT jump directly triggered Sep-26 HDFC MF buying)</td>
+            <td><strong>74.4</strong></td>
+            <td><strong>#1 Pioneer Active MF Pick</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(2, 'Lumax')">[Tab 2: MF Buy]</button>
+              <button class="xref-btn" onclick="jumpToTab(6, 'Lumax')">[Tab 6: Forensics]</button>
+              <button class="xref-btn" onclick="jumpToTab(9, 'Lumax')">[Tab 9: Q1 Call]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Lumax')">[Tab 10: News Corr]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-green">TIER 1: ALL-CLEAR SHORTLIST</span></td>
+            <td><strong>Veefin Solutions</strong> (VEEFIN)<br/><span style="color:var(--muted)">₹502 Cr | Stage 1 Micro</span></td>
+            <td>Received BSE In-Principle Approval for Mainboard Migration (21 Sep 2026); $80M enterprise pipeline</td>
+            <td>1.41% Float Tightening; 52.1% Promoter stake</td>
+            <td><span class="badge b-green">CLEAN</span> 68% Cash Conv | DSO improved 130d→99d | 24x P/E (VR 4★)</td>
+            <td><strong>News Corr: 9.1/10</strong> (13 Aug Q1 PPT showed +151% standalone PAT & 55.4% EBITDA margin)</td>
+            <td><strong>73.5</strong></td>
+            <td><strong>Approved Mainboard SaaS Pick</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(4, 'Veefin')">[Tab 4: BSE Appr]</button>
+              <button class="xref-btn" onclick="jumpToTab(9, 'Veefin')">[Tab 9: Q1 PPT]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Veefin')">[Tab 10: News Corr]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-green">TIER 1: ALL-CLEAR SHORTLIST</span></td>
+            <td><strong>Shaily Engineering Plastics</strong> (SHAILY)<br/><span style="color:var(--muted)">₹14,310 Cr | Stage 3 Small-Cap</span></td>
+            <td>Commercialized GLP-1 Semaglutide pens (65-75% share of Canadian filers); capacity scaling 23.5M → 50M pens</td>
+            <td>7 Active MFs added (Franklin Small Cap +498%); 2 Fresh MF entries</td>
+            <td><span class="badge b-green">CLEAN</span> 77% Cash Conv | 0% Pledge | Rich 81x P/E (Buy on dips)</td>
+            <td><strong>News Corr: 9.6/10</strong> (Concall proof of 139% FY26 Healthcare surge drove Sep-26 MF cluster)</td>
+            <td><strong>71.6</strong></td>
+            <td><strong>Highest MF Conviction Leader</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(2, 'Shaily')">[Tab 2: MF Cluster]</button>
+              <button class="xref-btn" onclick="jumpToTab(9, 'Shaily')">[Tab 9: Concall]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Shaily')">[Tab 10: News Corr]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-green">TIER 1: ALL-CLEAR SHORTLIST</span></td>
+            <td><strong>Thaai Casting</strong> (TCL)<br/><span style="color:var(--muted)">₹301 Cr | Stage 1 Micro</span></td>
+            <td>21 Investors (Inti Capital VCC) converted ₹20.5 Cr CCDs/Warrants @ ₹101/sh; Order book ₹522–800+ Cr</td>
+            <td><strong>17.23% Free-Float Squeeze</strong> via locked-in preferential shares</td>
+            <td><span class="badge b-green">CLEAN</span> FY26 CFO jumped 2,887% to ₹35.44 Cr | Reg 31(4) 0% Pledge</td>
+            <td><strong>News Corr: 8.9/10</strong> (29 May filing confirmed ₹126.5 Cr & ₹76.8 Cr 60-80m orders + EUROGUSS)</td>
+            <td><strong>70.8</strong></td>
+            <td><strong>Clean Warrant + Cash-Flow Pick</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(3, 'Thaai')">[Tab 3: Warrants]</button>
+              <button class="xref-btn" onclick="jumpToTab(9, 'Thaai')">[Tab 9: AR/Orders]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Thaai')">[Tab 10: News Corr]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-amber">TIER 2: WATCHLIST (CASH FLOW WATCH)</span></td>
+            <td><strong>Dhabriya Polywood</strong> (DHABRIYA)<br/><span style="color:var(--muted)">₹553 Cr | Stage 1 Micro</span></td>
+            <td>Abakkus Fund bought 5.56% stake (20 Jul filing); ₹200+ Cr Order Book (Emaar/Godrej/Conscient wins)</td>
+            <td><strong>15.98% Free-Float Absorbed</strong> by Abakkus</td>
+            <td><span class="badge b-amber">WC WATCH</span> 27% Cash Conv (₹8 Cr CFO vs ₹30 Cr PAT; 197d inventory)</td>
+            <td><strong>News Corr: 8.7/10</strong> (12 Aug Q1 PPT showed record ₹8.86 Cr PAT & ₹100 Cr capex; wait for CFO)</td>
+            <td><strong>67.8</strong></td>
+            <td><strong>Track Only — Wait for Inventory Cash Collection</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(6, 'Dhabriya')">[Tab 6: WC Watch]</button>
+              <button class="xref-btn" onclick="jumpToTab(9, 'Dhabriya')">[Tab 9: Q1 PPT]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Dhabriya')">[Tab 10: News Corr]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-amber">TIER 2: WATCHLIST (NEGATIVE CFO)</span></td>
+            <td><strong>Paramount Communications</strong> (PARACABLES)<br/><span style="color:var(--muted)">₹1,887 Cr | Stage 1 Micro</span></td>
+            <td>Promoters took 72L warrants + Abakkus invested ₹50 Cr @ ₹42/sh</td>
+            <td>4.90% Free-Float Absorbed</td>
+            <td><span class="badge b-red">CFO FLAG</span> FY26 Operating Cash Flow was negative (-₹38 Cr)</td>
+            <td><strong>News Corr: 6.5/10</strong> (US exports rebounded, but FY26 PAT boosted by ₹51 Cr other income)</td>
+            <td><strong>54.8</strong></td>
+            <td><strong>Do Not Buy Until CFO Turns Positive</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(6, 'Paramount')">[Tab 6: Cash Flag]</button>
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge b-red">TIER 3: AVOID / FALSE TRAP</span></td>
+            <td><strong>Cupid Ltd</strong> (CUPID)<br/><span style="color:var(--muted)">₹4,121 Cr | Stage 2 Upper Micro</span></td>
+            <td>Added to Nifty Alpha 50 & Smallcap 250 indices</td>
+            <td>Headline +61.47L share MF surge was <strong>98% Passive Index ETFs</strong></td>
+            <td><span class="badge b-red">EXTREME PE</span> Trading at ~303x P/E; Active Small-Cap fund exited</td>
+            <td><strong>News Corr: 2.0/10</strong> (Viral "MF buying" news was a passive index rebalancing mirage)</td>
+            <td><strong>41.2</strong></td>
+            <td><strong>Avoid — Classic Passive ETF Noise Trap</strong><br/>
+              <button class="xref-btn" onclick="jumpToTab(8, 'Cupid')">[Tab 8: ETF Proof]</button>
+              <button class="xref-btn" onclick="jumpToTab(10, 'Cupid')">[Tab 10: News Audit]</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 1 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 1: Executive Summary & Top Early Discovery Ranks (/100) — Plain-English Guide</h3>
+      <p><strong>What it means:</strong> Think of this as the "Overall Leaderboard." Every stock is graded out of <strong>100 points</strong> by combining 5 simple questions: (1) Is it still small enough to multiply? [25 pts], (2) Are big buyers soaking up available shares? [25 pts], (3) Are insiders buying & orders growing? [20 pts], (4) Are the accounts clean with zero debt-pledging by owners? [15 pts], and (5) Is growth strong at a fair price? [15 pts].</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Any stock scoring <strong>above 70 / 100</strong> with a Green <code>CLEAN</code> badge is a prime candidate for your starter portfolio or SIP watchlist.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th><th>Company (Ticker)</th><th>MCap (₹ Cr)</th><th>Stage</th><th>Discovery Layer</th><th>Free-Float Abs %</th><th>Forensic Status</th><th>Watchlist Score</th><th>Discovery Score (/100)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Concord Control Systems</strong> (543619)</td><td>2,476</td><td><span class="badge b-purple">Stage 1 Micro</span></td><td>HNI Add (Kacholia 1.64%) + Mainboard Vote (100%)</td><td>1.54%</td><td><span class="badge b-green">CLEAN (74% CFO)</span></td><td>+8</td><td><strong>86.5</strong></td></tr>
+          <tr><td>2</td><td><strong>Felix Industries</strong> (FELIX)</td><td>321</td><td><span class="badge b-purple">Stage 1 Micro</span></td><td>NSE Mainboard Application Filed (21-Sep-26)</td><td>1.33%</td><td><span class="badge b-green">CLEAN (72% CFO)</span></td><td>+5</td><td><strong>81.0</strong></td></tr>
+          <tr><td>3</td><td><strong>Lumax Industries</strong> (LUMAXIND)</td><td>4,958</td><td><span class="badge b-blue">Stage 2 Upper Micro</span></td><td>2 Active MF Adds + ₹2,500 Cr LED Order Book</td><td>1.36%</td><td><span class="badge b-green">CLEAN (78% CFO)</span></td><td>+16</td><td><strong>74.4</strong></td></tr>
+          <tr><td>4</td><td><strong>Veefin Solutions</strong> (VEEFIN)</td><td>502</td><td><span class="badge b-purple">Stage 1 Micro</span></td><td>BSE Mainboard In-Principle Approval (21-Sep-26)</td><td>1.41%</td><td><span class="badge b-green">CLEAN (68% CFO)</span></td><td>+5</td><td><strong>73.5</strong></td></tr>
+          <tr><td>5</td><td><strong>Shaily Engineering Plastics</strong> (SHAILY)</td><td>14,310</td><td><span class="badge b-green">Stage 3 Small</span></td><td>Franklin Small Cap (+498%) + GLP-1 Medical Pens</td><td>1.76%</td><td><span class="badge b-green">CLEAN (77% CFO)</span></td><td>+26</td><td><strong>71.6</strong></td></tr>
+          <tr><td>6</td><td><strong>Thaai Casting</strong> (TCL)</td><td>301</td><td><span class="badge b-purple">Stage 1 Micro</span></td><td>20.31L Warrant & CCD Conversion @ ₹101/sh</td><td>17.23%</td><td><span class="badge b-green">CLEAN (70% CFO)</span></td><td>+5</td><td><strong>70.8</strong></td></tr>
+          <tr><td>7</td><td><strong>Dhabriya Polywood</strong> (DHABRIYA)</td><td>553</td><td><span class="badge b-purple">Stage 1 Micro</span></td><td>Abakkus 5.56% Block + ₹200 Cr Order Book</td><td><strong>15.98%</strong></td><td><span class="badge b-amber">WC WATCH (27% CFO)</span></td><td>+8</td><td><strong>67.8</strong></td></tr>
+          <tr><td>8</td><td><strong>CCL Products (India)</strong> (CCL)</td><td>12,028</td><td><span class="badge b-green">Stage 3 Small</span></td><td>MO Small Cap (+14.9%) & HSBC Multi Cap (+153.5%)</td><td>0.99%</td><td><span class="badge b-green">CLEAN (72% CFO)</span></td><td>+8</td><td><strong>63.5</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 2: Pioneer First-AMC & Active MF Accumulation — Plain-English Guide</h3>
+      <p><strong>What it means:</strong> Every month around the 12th, Mutual Funds must legally disclose every stock they bought or sold in the prior month. This tab strips out all passive Index ETFs and shows <strong>only human fund managers</strong> who did deep research and chose to buy.</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Look for <code>Y (Fresh)</code> (meaning a fund owned 0 shares last month and just started buying) or huge percentage jumps like Franklin India Small Cap increasing its stake in <strong>Shaily Engineering by +498%</strong> or HDFC MF increasing <strong>Lumax Industries by +230%</strong>.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company (Ticker)</th><th>Scheme Name (Active Only)</th><th>Category</th><th>Prior Shares (Aug-26)</th><th>Curr Shares (Sep-26)</th><th>MoM %</th><th>Value (₹ Cr)</th><th>Fresh Entry</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>Franklin India Small Cap Fund</td><td>Small-Cap</td><td>60,808</td><td>3,63,927</td><td>+498.49%</td><td>111.47</td><td>N</td></tr>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>Franklin India Flexi Cap Fund</td><td>Flexi-Cap</td><td>2,55,922</td><td>3,87,953</td><td>+51.59%</td><td>118.83</td><td>N</td></tr>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>Union Active Momentum Fund</td><td>Thematic</td><td>0</td><td>40,928</td><td>+100.0%</td><td>12.54</td><td><span class="badge b-green">Y (Fresh)</span></td></tr>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>Mahindra Manulife Consumption Fund</td><td>Thematic</td><td>0</td><td>29,630</td><td>+100.0%</td><td>9.08</td><td><span class="badge b-green">Y (Fresh)</span></td></tr>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>WhiteOak Capital Pharma & Healthcare</td><td>Sectoral</td><td>37,499</td><td>55,537</td><td>+48.10%</td><td>17.01</td><td>N</td></tr>
+          <tr><td>Lumax Industries (LUMAXIND)</td><td>HDFC Children's Fund (Lock-in)</td><td>Solution</td><td>8,815</td><td>29,166</td><td>+230.87%</td><td>16.24</td><td>N</td></tr>
+          <tr><td>Lumax Industries (LUMAXIND)</td><td>HDFC Retirement Hybrid Debt</td><td>Hybrid</td><td>0</td><td>1,000</td><td>+100.0%</td><td>0.56</td><td><span class="badge b-green">Y (Fresh)</span></td></tr>
+          <tr><td>CCL Products (CCL)</td><td>Motilal Oswal Small Cap Fund</td><td>Small-Cap</td><td>25,44,113</td><td>28,43,274</td><td>+14.87%</td><td>289.87</td><td>N</td></tr>
+          <tr><td>CCL Products (CCL)</td><td>HSBC Multi Cap Fund</td><td>Multi-Cap</td><td>2,40,790</td><td>6,10,453</td><td>+153.52%</td><td>62.24</td><td>N</td></tr>
+          <tr><td>Data Patterns (DATAPATTNS)</td><td>Canara Robeco Small Cap Fund</td><td>Small-Cap</td><td>4,12,000</td><td>6,42,686</td><td>+55.99%</td><td>156.40</td><td>N</td></tr>
+          <tr><td>Data Patterns (DATAPATTNS)</td><td>Motilal Oswal ELSS Tax Saver</td><td>ELSS</td><td>1,93,198</td><td>2,52,993</td><td>+30.95%</td><td>108.46</td><td>N</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 3 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 3: Pre-MF Smart Money (SAST, Warrants & AIF Blocks) — Plain-English Guide</h3>
+      <p><strong>What it means:</strong> Large Mutual Funds usually cannot buy tiny companies (under ₹2,000 Cr) because of strict liquidity rules. So who buys them 6 to 18 months <em>before</em> Mutual Funds arrive? <strong>(1) Promoters</strong>, <strong>(2) Superstar HNI Investors</strong> (like Ashish Kacholia or Mukul Agrawal), and <strong>(3) Category III AIFs/PMS funds</strong> (like Sunil Singhania's Abakkus).</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Treat this tab as your "Early Radar." When a respected investor or promoter puts ₹10 Cr–₹50 Cr of hard cash into a small company, it tells you insiders expect a big jump in future profits.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Filing Date</th><th>Company (Ticker)</th><th>MCap (₹ Cr)</th><th>Signal Type</th><th>Acquirer / Allottee</th><th>Outlay (₹ Cr)</th><th>% Equity</th><th>Key Catalyst</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Oct 2026 (Q2 Filing)</td><td>Concord Control Systems (543619)</td><td>2,476</td><td><span class="badge b-purple">HNI Secondary Accumulation</span></td><td>Ashish Kacholia (+Mukul Agrawal 4.09%)</td><td>~40.0</td><td>1.64%</td><td>Raised stake from 1.18% to 1.64% ahead of Mainboard migration</td></tr>
+          <tr><td>20 Jul / Sep 2026</td><td>Dhabriya Polywood (DHABRIYA)</td><td>553</td><td><span class="badge b-green">Cat III AIF Open-Market Block</span></td><td>Abakkus Venture Opportunities Fund</td><td>28.50</td><td>5.56%</td><td>DII stake jumped from 0.45% to 6.00%; absorbed 15.98% of float</td></tr>
+          <tr><td>01 Sep 2026</td><td>Thaai Casting (TCL)</td><td>301</td><td><span class="badge b-blue">Warrant & CCD Conversion</span></td><td>Inti Capital VCC & 21 Investors</td><td>20.51</td><td>7.70%</td><td>20.31L shares allotted @ ₹101/sh (15.31L CCDs + 5L Warrants)</td></tr>
+          <tr><td>Sep 2026 Filing</td><td>Paramount Comm (PARACABLES)</td><td>1,887</td><td><span class="badge b-amber">Promoter Warrant + AIF Pref</span></td><td>Promoters (72L Warrants) + Abakkus</td><td>80.24</td><td>6.10%</td><td>Allotted @ ₹42/sh; US export rebound to ₹155 Cr in Q1 FY27</td></tr>
+          <tr><td>Sep 2026 Filing</td><td>Apsis Aerocom (APSISAERO)</td><td>729</td><td><span class="badge b-purple">HNI Secondary Entry</span></td><td>Mukul Agrawal</td><td>9.18</td><td>1.21%</td><td>1,46,400 shares bought post-listing in defence/aerospace machining</td></tr>
+          <tr><td>24 Oct 2026</td><td>Arvaya Healthcare (ARVAYA)</td><td>474</td><td><span class="badge b-blue">SEBI PIT Insider Acquisition</span></td><td>Acquirer / Promoter Group</td><td>5.96</td><td>7.88%</td><td>5,91,129 shares acquired under SEBI PIT Reg on 24 Oct 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 4 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 4: Capex, Order Book (>=2.5x) & SME-to-Mainboard Pipeline — Plain-English Guide</h3>
+      <p><strong>What it means:</strong> Why do small companies suddenly become multi-baggers? Usually because of three real-world business events: <strong>(1) Giant Order Book (>=2.5x sales)</strong>, <strong>(2) Capex Commissioning</strong>, or <strong>(3) SME-to-Mainboard Migration</strong> (graduating from the SME platform to the NSE/BSE Mainboard where anyone can buy 1 share and Mutual Funds can enter).</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Buying a clean, profitable company right when it gets shareholder/exchange approval to move to the Mainboard (like <strong>Concord Control, Veefin, or Felix Industries</strong>) lets you enter just before Mainboard liquidity unlocks.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company (Ticker)</th><th>MCap (₹ Cr)</th><th>Inflection Trigger</th><th>Migration / Order Book / Capex Metric</th><th>Milestone Date</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Concord Control Systems (543619)</td><td>2,476</td><td>Order Book 3.32x + Mainboard Vote</td><td>₹697 Cr Order Book (vs ₹210 Cr sales) + ₹279.9 Cr Kavach associate order</td><td>21 Sep 2026</td><td><span class="badge b-green">100% Shareholder Approval</span></td></tr>
+          <tr><td>Veefin Solutions (VEEFIN)</td><td>502</td><td>BSE Mainboard Migration</td><td>$80M enterprise pipeline; Standalone rev +128% YoY; P/E 24.0x</td><td>21 Sep 2026</td><td><span class="badge b-green">In-Principle Approval Received</span></td></tr>
+          <tr><td>Felix Industries (FELIX)</td><td>321</td><td>NSE Mainboard Migration</td><td>Q1 FY27 PAT ₹5.67 Cr on ₹28.97 Cr sales; P/E 14.35x; ₹15 Cr PO stage</td><td>21 Sep 2026</td><td><span class="badge b-blue">Applied to NSE Exchange</span></td></tr>
+          <tr><td>Parin Enterprises (PARIN)</td><td>780</td><td>Moved to NSE Mainboard</td><td>Completed migration from NSE Emerge to NSE Mainboard</td><td>27 Sep 2026</td><td><span class="badge b-green">Trading on Mainboard</span></td></tr>
+          <tr><td>Thaai Casting (TCL)</td><td>301</td><td>Order Book 3.5x–5.4x Sales</td><td>₹522.8 Cr to ₹800+ Cr multi-year order book (won ₹126.5 Cr & ₹76.8 Cr orders)</td><td>29 May 2026</td><td><span class="badge b-green">Plant 90% Ready</span></td></tr>
+          <tr><td>Lumax Industries (LUMAXIND)</td><td>4,958</td><td>LED Order Book + Capex</td><td>₹2,500 Cr Order Book (90% LED, 38% EV); ₹200-250 Cr FY27 capex</td><td>18 Aug 2026</td><td><span class="badge b-blue">Execution Ramp-Up</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 5 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 5: Free-Float Absorption Squeeze Analyzer — Plain-English Guide</h3>
+      <p><strong>What it means:</strong> If a company is worth ₹500 Cr and the owners (Promoters) hold 70%, only 30% (₹150 Cr) is available for the public to trade (<strong>Free Float</strong>). If an institution buys ₹25 Cr worth of shares in one month, they swallowed up <strong>16.6% of all available public shares!</strong></p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> When <code>Free-Float Absorption %</code> is above <strong>1.5% to 2.0%</strong> in a small company, it creates a scarcity of shares ("Float Squeeze") so good earnings news pushes the stock price up rapidly.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company (Ticker)</th><th>MCap (₹ Cr)</th><th>Promoter %</th><th>Free Float MCap (₹ Cr)</th><th>Institutional Buy (₹ Cr)</th><th>Free-Float Absorption %</th><th>Squeeze Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Thaai Casting (TCL)</td><td>300.7</td><td>60.41%</td><td>119.05</td><td>20.51</td><td><strong>17.23%</strong></td><td><span class="badge b-green">EXTREME FLOAT SQUEEZE (Locked-in Pref)</span></td></tr>
+          <tr><td>Dhabriya Polywood (DHABRIYA)</td><td>553.0</td><td>67.75%</td><td>178.34</td><td>28.50</td><td><strong>15.98%</strong></td><td><span class="badge b-green">HIGH FLOAT SQUEEZE (Abakkus Block)</span></td></tr>
+          <tr><td>Paramount Comm (PARACABLES)</td><td>1,887.2</td><td>45.87%</td><td>1,021.54</td><td>50.00</td><td><strong>4.90%</strong></td><td><span class="badge b-green">HIGH FLOAT SQUEEZE</span></td></tr>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>14,309.8</td><td>41.09%</td><td>8,429.90</td><td>148.60</td><td><strong>1.76%</strong></td><td><span class="badge b-blue">STRONG SMALL-CAP ABSORPTION</span></td></tr>
+          <tr><td>Concord Control (543619)</td><td>2,476.0</td><td>67.08%</td><td>815.10</td><td>12.50</td><td><strong>1.54%</strong></td><td><span class="badge b-blue">MODERATE FLOAT TIGHTENING</span></td></tr>
+          <tr><td>Lumax Industries (LUMAXIND)</td><td>4,958.0</td><td>75.00%</td><td>1,239.50</td><td>16.80</td><td><strong>1.36%</strong></td><td><span class="badge b-blue">LOW FREE FLOAT (25% Public)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 6 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 6: Forensic & Governance Guardrails — Plain-English Guide (Your Safety Shield)</h3>
+      <p><strong>What it means:</strong> In small companies, fake profits are the #1 danger for beginners. To catch this, we check <strong>3Y CFO / EBITDA % (Cash Conversion)</strong>: out of every ₹100 of operating profit, how much actually arrived as real cash in the bank? We want at least <strong>65%+</strong>. We also verify mandatory <strong>SEBI Reg 31(4) declarations</strong> confirming <strong>0% Promoter Pledge</strong>.</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Stick to <code>PASS — CLEAN</code> stocks! Notice how Thaai Casting's FY26 Cash Flow surged +2,887% to ₹35.44 Cr (Clean!), whereas Dhabriya Polywood has ₹30 Cr profit but only ₹8 Cr cash flow due to 197 days of inventory.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company (Ticker)</th><th>3Y CFO / EBITDA %</th><th>Promoter Pledge %</th><th>24M Auditor Resignation</th><th>Inventory / Cash Flow Note</th><th>Forensic Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Lumax Industries (LUMAXIND)</td><td>78.4%</td><td>0.0%</td><td>None</td><td>D/E ~1.0x (₹970 Cr debt for LED capex)</td><td><span class="badge b-green">PASS — CLEAN</span></td></tr>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>76.8%</td><td>0.0%</td><td>None</td><td>ROCE 38.4% (Q3) / 29.5% (FY26), D/E 0.3x</td><td><span class="badge b-green">PASS — CLEAN</span></td></tr>
+          <tr><td>Concord Control (543619)</td><td>74.2%</td><td>0.0%</td><td>None</td><td>ROCE 31.0%, Clean railway advances</td><td><span class="badge b-green">PASS — CLEAN</span></td></tr>
+          <tr><td>Felix Industries (FELIX)</td><td>71.5%</td><td>0.0%</td><td>None</td><td>P/E 14.35x, Clean balance sheet</td><td><span class="badge b-green">PASS — CLEAN</span></td></tr>
+          <tr><td>Thaai Casting (TCL)</td><td>70.4%</td><td>0.0% (Reg 31(4) 03-Apr-26)</td><td>None</td><td>FY26 CFO surged +2,887% YoY to ₹35.44 Cr (from ₹1.19 Cr)</td><td><span class="badge b-green">PASS — CLEAN</span></td></tr>
+          <tr><td>Veefin Solutions (VEEFIN)</td><td>68.0%</td><td>0.0%</td><td>None</td><td>DSO improved sharply from 130 days to 99 days in FY26</td><td><span class="badge b-green">PASS — CLEAN</span></td></tr>
+          <tr><td>Dhabriya Polywood (DHABRIYA)</td><td>26.7% (FY26)</td><td>0.0% (Reg 31(4) 06-Apr-26)</td><td>None</td><td>FY26 PAT ₹30 Cr vs CFO ₹8 Cr; Inv. 197 days</td><td><span class="badge b-amber">WATCH — WORKING CAPITAL STRETCH</span></td></tr>
+          <tr><td>Paramount Comm (PARACABLES)</td><td>Negative (-₹38 Cr)</td><td>0.0%</td><td>None</td><td>₹51 Cr Other Income boosted FY26 PAT</td><td><span class="badge b-red">FLAG — NEGATIVE OPERATING CASH FLOW</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 7 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 7: Value Research 4-Pillar Matrix — Plain-English Guide</h3>
+      <p><strong>What it means:</strong> Breaks each stock into 4 simple scores out of 10: <strong>Quality</strong> (business health), <strong>Growth</strong> (sales & profit speed), <strong>Valuation</strong> (is the share price cheap? 8/10 = very cheap, 1/10 = super expensive), and <strong>Momentum</strong> (price trend).</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Look for <strong>Growth 8–9</strong> AND <strong>Valuation 5–8</strong> (<strong>Felix, Lumax, Veefin, Thaai Casting, Concord Control</strong>). If Valuation is 3/10 (Shaily at 81x P/E), only accumulate slowly on market dips.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company (Ticker)</th><th>VR Stars</th><th>Quality (25%)</th><th>Growth (20%)</th><th>Valuation (35%)</th><th>Momentum (20%)</th><th>Composite (/100)</th><th>VR Turnaround Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Felix Industries (FELIX)</td><td>4★</td><td>7/10</td><td>9/10</td><td>8/10</td><td>7/10</td><td><strong>77.5</strong></td><td>High Growth + Cheap Valuation (14.4x PE)</td></tr>
+          <tr><td>Dhabriya Polywood (DHABRIYA)</td><td>3★</td><td>6/10</td><td>9/10</td><td>8/10</td><td>7/10</td><td><strong>75.0</strong></td><td>OPM expanded 10% → 23%; 17x PE vs 21x Peer</td></tr>
+          <tr><td>Lumax Industries (LUMAXIND)</td><td>4★</td><td>7/10</td><td>8/10</td><td>7/10</td><td>7/10</td><td><strong>72.0</strong></td><td>26.7x PE with 41% Q1 PAT growth</td></tr>
+          <tr><td>Veefin Solutions (VEEFIN)</td><td>4★</td><td>7/10</td><td>9/10</td><td>7/10</td><td>6/10</td><td><strong>72.0</strong></td><td>0.81x P/B & 24x PE ahead of Mainboard move</td></tr>
+          <tr><td>Concord Control (543619)</td><td>4★</td><td>8/10</td><td>9/10</td><td>5/10</td><td>8/10</td><td><strong>71.5</strong></td><td>Strong Quality + Growth + Momentum</td></tr>
+          <tr><td>CCL Products (CCL)</td><td>4★</td><td>8/10</td><td>8/10</td><td>6/10</td><td>7/10</td><td><strong>71.0</strong></td><td>Steady Coffee Compounder at 26x PE</td></tr>
+          <tr><td>Thaai Casting (TCL)</td><td>3★</td><td>7/10</td><td>8/10</td><td>7/10</td><td>6/10</td><td><strong>70.0</strong></td><td>Reasonable 27x PE with ₹35.4 Cr CFO</td></tr>
+          <tr><td>Shaily Engineering (SHAILY)</td><td>4★</td><td>8/10</td><td>9/10</td><td>3/10</td><td>9/10</td><td><strong>66.5</strong></td><td>Medical Device re-rating (80.9x PE — Buy on dips)</td></tr>
+          <tr><td>Cupid Ltd (CUPID)</td><td>2★</td><td>6/10</td><td>8/10</td><td>1/10</td><td>9/10</td><td><strong>52.5</strong></td><td>Extreme Valuation Risk (303x PE)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 8 -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>Tab 8: Complete Active Exits & Passive ETF Noise Audit — Plain-English Guide</h3>
+      <p><strong>What it means:</strong> First-time investors often read headlines saying <em>"Mutual Funds bought 61 Lakh shares of Cupid Ltd!"</em> and rush in at the top. This tab protects you by proving when buying was just automated Index ETFs while active managers exited.</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Check this tab before buying any hyped stock to ensure active fund managers aren't heading for the exit door.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company (Ticker)</th><th>Scheme / Flow Source</th><th>Action Type</th><th>Shares Changed (Sep-26)</th><th>Audit Diagnosis</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Cupid Ltd (CUPID)</td><td>Kotak Nifty Alpha 50 ETF + Bandhan Alpha 50 Idx + Smallcap 250 Idx</td><td><span class="badge b-amber">Passive Index Inflow</span></td><td>+61,47,377</td><td>98% Passive ETF rebalancing; only 20,805 sh active buy (Samco Small Cap)</td></tr>
+          <tr><td>Cupid Ltd (CUPID)</td><td>The Wealth Company Small Cap Fund</td><td><span class="badge b-red">Complete Active Exit</span></td><td>-1,05,000</td><td>Active small-cap manager exited into passive index buying</td></tr>
+          <tr><td>Welspun Corp (WELCORP)</td><td>SBI Small Cap Fund & Quant Small Cap Fund</td><td><span class="badge b-red">Complete Exit / Heavy Trim</span></td><td>-18,32,112 (Net MF)</td><td>SBI Small Cap exited (-100%); Quant Small Cap sold 8,17,528 sh</td></tr>
+          <tr><td>Data Patterns (DATAPATTNS)</td><td>Kotak ELSS Tax Saver & HDFC Multi Cap</td><td><span class="badge b-red">Complete Active Exit</span></td><td>-3,35,000</td><td>Exited while Canara Robeco Small Cap (+2.31L sh) accumulated</td></tr>
+          <tr><td>SJS Enterprises (SJS)</td><td>UTI Multi Cap & TRUSTMF Multi Cap</td><td><span class="badge b-red">Complete Active Exit</span></td><td>-43,075</td><td>Headline +65,219 sh net gain was driven by MO Microcap 250 Index (+69,011 sh)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 9: NEW! ANNUAL REPORTS, CONCALL TRANSCRIPTS, PPTs & REG 30 MANDATORY FILINGS -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>★ Tab 9: Annual Reports, Quarterly Concall Transcripts, Investor PPTs & Mandatory Filings — Plain-English Guide</h3>
+      <p><strong>What this tab gives you:</strong> Instead of reading 300-page Annual Reports or listening to 60-minute management conference calls yourself, this tab extracts the exact numbers, management promises, capacity expansion timelines, and mandatory SEBI Regulation 30 (Order Win) & Regulation 31(4) (Zero Share Pledge) disclosures filed with NSE/BSE in 2026.</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Before investing in any Tier-1 stock, read its row here so you know <em>what the company actually makes</em>, <em>why profits are rising</em>, and <em>what milestones to check in the next quarterly result</em>. Direct links to the official investor relations/exchange PDFs are included!</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Company (Ticker) & Filing Date</th>
+            <th>Document Type & Period</th>
+            <th>Annual Report & Earnings Concall / PPT Highlights (Management Commentary)</th>
+            <th>Mandatory SEBI Reg 30 (Order Book / Capex) & Reg 31(4) Disclosures</th>
+            <th>Official Source Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Concord Control Systems</strong> (543619)<br/><span style="color:var(--muted)">14–19 May 2026 & 21 Sep 2026</span></td>
+            <td><span class="badge b-purple">FY25-26 Annual Report</span><br/><span class="badge b-blue">Reg 30 Investor Deck</span></td>
+            <td>• <strong>Business Evolution:</strong> Transitioned from a railway component vendor into a full-scale Railway Propulsion & <strong>Kavach 4.0</strong> safety system integrator.<br/>• <strong>FY26 Financials:</strong> Consolidated revenue reached ₹210 Cr (+68% YoY) with 31% ROCE and ~24% EBITDA margins.</td>
+            <td>• <strong>Order Book (Reg 30):</strong> Standalone order book at <strong>₹697 Cr (3.32x FY26 revenue)</strong> plus associate <em>Progota India</em> (46.5% stake) won a <strong>₹279.90 Cr</strong> South Central Railway Kavach 4.0 order.<br/>• <strong>Mainboard Migration:</strong> Shareholders voted <strong>100% in favor</strong> on 21 Sep 2026 to migrate from BSE SME to BSE Mainboard + Direct NSE Listing.</td>
+            <td><a class="doc-link" href="https://www.concordgroup.in/investors/financials" target="_blank">Concord AR & Financials ↗</a><br/><a class="doc-link" href="https://trendlyne.com/fundamentals/documents-investor-presentation/1054738/13510367/concord-control-systems-ltd/" target="_blank">BSE Reg 30 Decks ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Felix Industries</strong> (FELIX)<br/><span style="color:var(--muted)">04–06 Jun 2026 & 21 Sep 2026</span></td>
+            <td><span class="badge b-purple">FY25-26 Annual Report</span><br/><span class="badge b-blue">Q4 Concall & Jun-26 PPT</span></td>
+            <td>• <strong>Concall & PPT Takeaways (04 & 06 Jun 2026):</strong> Scaling high-margin Zero Liquid Discharge (ZLD) industrial water recovery, e-waste recycling, and metal recycling.<br/>• <strong>Q1 FY27 Momentum:</strong> Delivered ₹5.67 Cr PAT on ₹28.97 Cr revenue (~19.6% net margin), trading at just 14.35x P/E.</td>
+            <td>• <strong>Order Pipeline (Concall & Reg 30):</strong> Disclosed ₹15 Cr orders in Purchase Order (PO) stage + subsidiary PO win (22 May 2026) + Corporate Guarantee for subsidiary expansion (02 Sep 2026).<br/>• <strong>Mainboard Filing:</strong> Shareholders approved (10 Aug) and company filed <strong>In-Principle Application with NSE Mainboard on 21 Sep 2026</strong>.</td>
+            <td><a class="doc-link" href="https://www.felixindustries.co/investor-relations/" target="_blank">Felix IR Portal (AR & PPT) ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Lumax Industries</strong> (LUMAXIND)<br/><span style="color:var(--muted)">05 Jun 2026 & 18 Aug 2026</span></td>
+            <td><span class="badge b-blue">Q1 FY27 Concall (18 Aug)</span><br/><span class="badge b-purple">Q4/FY26 Call & AR</span></td>
+            <td>• <strong>Q1 FY27 Concall (18 Aug 2026):</strong> Net profit jumped <strong>41% YoY</strong> driven by premiumization (matrix LED headlamps & ambient lighting for SUVs/EVs).<br/>• <strong>Tech Edge:</strong> Opened <em>SHIFT</em> Smart Hub Tech Center in Bengaluru + satellite offices in Japan/China to transition into a Tier-0.5 system integrator.</td>
+            <td>• <strong>Order Book Disclosure:</strong> Unexecuted order book stands at <strong>₹2,500 Cr</strong> — 90% is high-margin LED lighting and <strong>38% is for Electric Vehicle (EV) platforms</strong>.<br/>• <strong>Capex Guidance:</strong> Investing ₹200–250 Cr in FY27 across Chakan (Pune) and Sanand plants.</td>
+            <td><a class="doc-link" href="https://trendlyne.com/conference-calls/802/LUMAXIND/lumax-industries-ltd/" target="_blank">Lumax Concall Transcripts ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Veefin Solutions</strong> (VEEFIN)<br/><span style="color:var(--muted)">14 May 2026 & 13 Aug 2026</span></td>
+            <td><span class="badge b-blue">Q1 FY27 Investor PPT (13 Aug)</span><br/><span class="badge b-purple">Q4 Concall (14 May)</span></td>
+            <td>• <strong>Q1 FY27 Investor Deck (13 Aug 2026):</strong> Standalone revenue surged <strong>+128.2% YoY to ₹23.14 Cr</strong>, EBITDA rose <strong>+133.7% to ₹12.83 Cr (55.4% margin!)</strong>, and PAT jumped <strong>+151.4% YoY to ₹6.74 Cr</strong>.<br/>• <strong>Revenue Quality:</strong> <strong>74% is Recurring SaaS Revenue</strong> across 50+ banking/corporate institutions in 16 countries; Consolidated Q1 rev tripled (+230.8% YoY) to ₹113.97 Cr.<br/>• <strong>Working Capital Improvement:</strong> Debtor days (DSO) improved from 130 days to <strong>99 days</strong>; nearing end of product IP capex cycle.</td>
+            <td>• <strong>Enterprise Pipeline & Deals (Reg 30):</strong> Qualified enterprise pipeline at <strong>USD 80 Million</strong> (75% from non-SCF products on Veefin 4.0 chassis); signed multi-year deal with <strong>NEDFi</strong> (12 May 2026) and active on PSB Xchange (32 lenders).<br/>• <strong>Mainboard Approval:</strong> Granted <strong>BSE In-Principle Approval for Mainboard Migration on 21 Sep 2026</strong>.</td>
+            <td><a class="doc-link" href="https://veefin.com/company/investors/files/meeting-and-updates/BSE-upload-Earnings-Call-Investor-presentation.pdf" target="_blank">Veefin Q1 FY27 Deck PDF ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Shaily Engineering Plastics</strong> (SHAILY)<br/><span style="color:var(--muted)">13 Feb 2026 & 20 May 2026</span></td>
+            <td><span class="badge b-blue">Q4 & FY26 Concall (20 May)</span><br/><span class="badge b-purple">Q3 Concall & Q1 Update</span></td>
+            <td>• <strong>MD Amit Sanghvi Concall Highlights (20 May 2026):</strong> FY26 Healthcare revenue jumped <strong>+139% YoY to ₹393 Cr</strong> (from ₹165 Cr), pushing company EBITDA margin up 420 bps to <strong>29.3%</strong> (and Q1 FY27 healthcare grew +85% YoY to 51% of total sales).<br/>• <strong>Injector Pen Volume Ramp:</strong> Delivered <strong>23.5 million medical pens</strong> in FY26; guiding <strong>36–37 million pens in FY27</strong> and <strong>50 million+</strong> the year after as two new 65-ppm lines hit full speed.</td>
+            <td>• <strong>GLP-1 (Semaglutide) Market Share:</strong> Management disclosed capturing <strong>65% to 75% market share</strong> among the first 6–8 generic Semaglutide filers in Canada/Brazil.<br/>• <strong>Capex & Global Footprint:</strong> Adding 50M pen capacity + Abu Dhabi expansion (50–60% backed by customer commitments).</td>
+            <td><a class="doc-link" href="https://static.shaily.com/9I2mMFBfQEGPns3H8SUq-sepl-q-4-f-y-26-e-arnings-conference-call-transcript-final-pdf" target="_blank">Shaily Q4/FY26 Transcript PDF ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Thaai Casting</strong> (TCL)<br/><span style="color:var(--muted)">03 Apr, 29 May & 01 Sep 2026</span></td>
+            <td><span class="badge b-purple">FY26 Press Release & AR</span><br/><span class="badge b-green">Reg 31(4) & Warrant Filing</span></td>
+            <td>• <strong>FY26 Performance Filing (29 May 2026):</strong> Total income rose 19% YoY to ₹146.36 Cr with a 24.93% EBITDA margin and ₹12.75 Cr PAT (+15.3% YoY).<br/>• <strong>Massive Cash Flow Turnaround:</strong> Net Operating Cash Flow (CFO) skyrocketed <strong>+2,887% YoY to ₹35.44 Cr in FY26</strong> (up from ₹1.19 Cr in FY25).<br/>• <strong>Capex Commissioning:</strong> Fixed assets + CWIP jumped <strong>73% to ₹178.53 Cr</strong>; new heavy machining & gas nitriding facility is 90% ready. Participated in <em>EUROGUSS 2026</em> (Germany) for European exports.</td>
+            <td>• <strong>Order Book (Reg 30):</strong> Total order book reinforced to <strong>₹522.79 Cr – ₹800+ Cr</strong> (3 to 5 years visibility), including fresh domestic auto/EV orders of <strong>₹126.53 Cr</strong>, <strong>₹76.76 Cr</strong>, and <strong>₹12.43 Cr</strong>.<br/>• <strong>Mandatory Reg 31(4) Declaration (03 Apr 2026):</strong> Promoter Sriramulu Anandan formally certified <strong>0% share encumbrance/pledge</strong>.<br/>• <strong>Warrant Conversion (01 Sep 2026):</strong> Allotted 20.31L shares @ ₹101/sh.</td>
+            <td><a class="doc-link" href="https://nsearchives.nseindia.com/corporate/THAAI_29052026143536_Press_Release_29_05_2026_TCL.pdf" target="_blank">NSE FY26 Release & Orders PDF ↗</a></td>
+          </tr>
+          <tr>
+            <td><strong>Dhabriya Polywood</strong> (DHABRIYA)<br/><span style="color:var(--muted)">30 May, 12 Aug & Oct 2026</span></td>
+            <td><span class="badge b-blue">Q1 FY27 PPT & Call (12 Aug)</span><br/><span class="badge b-purple">34th AGM AR (30 Sep)</span></td>
+            <td>• <strong>Q1 FY27 Presentation & Concall (12 Aug 2026):</strong> Reported highest-ever quarterly EBITDA and record PAT of <strong>₹8.86 Cr on ₹68.31 Cr revenue (~23% OPM)</strong> driven by premium Drenzel uPVC/aluminum facade systems and modular kitchens.<br/>• <strong>3-Year Guidance:</strong> Management guided <strong>30% annual revenue CAGR</strong> through FY27 backed by a <strong>₹100 Cr capex plan</strong> (+₹22.46 Cr expansion filed 07 Apr 2026).</td>
+            <td>• <strong>Relentless Reg 30 Order Spree:</strong> Won ₹15.17 Cr (26 May), ₹18.59 Cr (08 Jul), ₹13.10 Cr (12 Aug), ₹7.25 Cr (14 Aug), <strong>₹24.72 Cr Emaar/Godrej order (14 Oct)</strong>, and <strong>₹11.79 Cr Conscient order (16 Oct)</strong> → Total Order Book <strong>₹200+ Cr</strong>.<br/>• <strong>Mandatory Reg 31(4) Filing (06 Apr 2026):</strong> Promoters (67.75% stake) certified 0% share pledge.</td>
+            <td><a class="doc-link" href="https://beta.bseindia.com/xml-data/corpfiling/AttachHis/1c55d5c6-6074-412a-bd41-8a3044625245.pdf" target="_blank">BSE Q1 FY27 Presentation PDF ↗</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 10: NEW! LATEST NEWS AGGREGATION, RELEVANCE SCORING & SHORTLIST CORRELATION MATRIX -->
+  <div class="tab-panel">
+    <div class="guide-box">
+      <h3>★ Tab 10: News Aggregation, Relevance Scoring (/10) & Shortlist Correlation — Plain-English Guide</h3>
+      <p><strong>What this tab gives you:</strong> Beginners often wonder: <em>"Did this stock appear on our shortlist because of real insider foresight, or is it just reacting to old news?"</em> This tab scores every major recent news event from <strong>1 to 10 for fundamental relevance</strong> and checks the <strong>Lead-Lag Correlation</strong> (whether Smart Money bought <em>before</em> the news broke, or whether a strong Earnings Concall directly caused Mutual Funds to buy the next month).</p>
+      <div class="how-to"><strong>How a beginner should use it:</strong> Look for <strong>Relevance Scores >= 8.5 / 10</strong> where Smart Money either <strong>pre-positioned ahead of the news</strong> (Concord Control, Dhabriya Polywood) or where <strong>Active MFs immediately accumulated after a verified earnings/concall breakout</strong> (Shaily Engineering, Lumax Industries). Ignore low-relevance media hype like Cupid Ltd (2.0/10).</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>News / Filing Date</th>
+            <th>Company (Ticker)</th>
+            <th>Verified News Headline & Event Summary</th>
+            <th>Category</th>
+            <th>News Relevance Score (/10)</th>
+            <th>Shortlist Appearance Correlation</th>
+            <th>Lead-Lag Forensic Diagnosis (How News & Smart Money Connected)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>21 Sep 2026</td>
+            <td><strong>Concord Control Systems</strong> (543619)</td>
+            <td>Shareholders approve BSE SME to Mainboard migration + direct NSE listing (100% vote) alongside ₹279.9 Cr Kavach 4.0 order win</td>
+            <td><span class="badge b-purple">Mainboard + Order Win</span></td>
+            <td><strong>9.8 / 10</strong></td>
+            <td><span class="badge b-green">STRONG POSITIVE (Rank #1)</span></td>
+            <td><strong>Smart Money Led the News:</strong> Ashish Kacholia increased his stake from 1.18% to 1.64% in Q2 FY27 <em>ahead</em> of the 21 Sep Mainboard vote. Once Mainboard listing goes live, active Mutual Funds (currently 0%) will be able to buy.</td>
+          </tr>
+          <tr>
+            <td>20 May & Aug 2026</td>
+            <td><strong>Shaily Engineering Plastics</strong> (SHAILY)</td>
+            <td>Concall confirms 65–75% share in Canadian generic GLP-1 Semaglutide injector pen filings; Healthcare sales jump +139% in FY26 & +85% in Q1 FY27</td>
+            <td><span class="badge b-blue">Concall Breakout</span></td>
+            <td><strong>9.6 / 10</strong></td>
+            <td><span class="badge b-green">DIRECT CAUSE OF MF CLUSTER (Rank #5)</span></td>
+            <td><strong>Concall Triggered Active MF Rush:</strong> Management's confirmation of 36–50M pen volume ramp directly drove Sep-2026 active buying by <em>Franklin Small Cap (+498%)</em>, <em>Franklin Flexi Cap (+52%)</em>, <em>WhiteOak Pharma (+48%)</em>, and 2 fresh MF entries.</td>
+          </tr>
+          <tr>
+            <td>21 Sep 2026</td>
+            <td><strong>Felix Industries</strong> (FELIX)</td>
+            <td>Files formal In-Principle Application with NSE for Mainboard Migration following Q1 PAT surge (₹5.67 Cr) and subsidiary PO wins</td>
+            <td><span class="badge b-purple">SME Migration Filing</span></td>
+            <td><strong>9.4 / 10</strong></td>
+            <td><span class="badge b-green">STRONG POSITIVE (Rank #2)</span></td>
+            <td><strong>Deep-Value Catalyst Alignment:</strong> Combining a 21 Sep NSE Mainboard application with a 14.35x P/E and 71.5% cash conversion propelled Felix to #2 on our discovery scorecard (81.0/100).</td>
+          </tr>
+          <tr>
+            <td>18 Aug 2026</td>
+            <td><strong>Lumax Industries</strong> (LUMAXIND)</td>
+            <td>Q1 FY27 Earnings Call reveals 41% YoY PAT growth and ₹2,500 Cr LED order book (38% EV share)</td>
+            <td><span class="badge b-blue">Earnings & Order Book</span></td>
+            <td><strong>9.2 / 10</strong></td>
+            <td><span class="badge b-green">DIRECT CAUSE OF SEP-26 MF BUYING (Rank #3)</span></td>
+            <td><strong>Immediate Institutional Follow-Through:</strong> Within weeks of the 18 Aug concall, <em>HDFC Children's Fund (+230.9%)</em> and <em>HDFC Retirement Fund (Fresh Entry)</em> accumulated shares in Sep-2026 disclosures.</td>
+          </tr>
+          <tr>
+            <td>13 Aug & 21 Sep 2026</td>
+            <td><strong>Veefin Solutions</strong> (VEEFIN)</td>
+            <td>Receives BSE In-Principle Approval for Mainboard Migration (21 Sep) right after Q1 deck (13 Aug) showed +151% standalone PAT & $80M pipeline</td>
+            <td><span class="badge b-purple">Mainboard Approval + Q1 Deck</span></td>
+            <td><strong>9.1 / 10</strong></td>
+            <td><span class="badge b-green">STRONG POSITIVE (Rank #4)</span></td>
+            <td><strong>Fundamental + Structural Convergence:</strong> Improving debtor days (130d → 99d) and 55.4% standalone EBITDA margin validated the business right as BSE approved its move to the Mainboard.</td>
+          </tr>
+          <tr>
+            <td>29 May & 01 Sep 2026</td>
+            <td><strong>Thaai Casting</strong> (TCL)</td>
+            <td>Allots 20.31L shares @ ₹101/sh upon Warrant/CCD conversion (01 Sep) after reporting +2,887% jump in FY26 Operating Cash Flow to ₹35.44 Cr & ₹522–800 Cr order book</td>
+            <td><span class="badge b-blue">Warrant Conversion + CFO Surge</span></td>
+            <td><strong>8.9 / 10</strong></td>
+            <td><span class="badge b-green">STRONG POSITIVE (Rank #6)</span></td>
+            <td><strong>Cash Flow Confirmed Smart Money Conviction:</strong> 21 marquee investors (incl. <em>Inti Capital VCC</em>) converted their warrants/CCDs into locked-in shares after FY26 cash flow proved operational scale-up, creating a 17.23% float squeeze.</td>
+          </tr>
+          <tr>
+            <td>20 Jul, 12 Aug & 16 Oct 2026</td>
+            <td><strong>Dhabriya Polywood</strong> (DHABRIYA)</td>
+            <td>Wins ₹24.72 Cr (Emaar/Godrej) & ₹11.79 Cr (Conscient) orders in Oct 2026 after Abakkus bought 5.56% open-market stake (20 Jul) & Q1 hit record ₹8.86 Cr PAT</td>
+            <td><span class="badge b-amber">AIF Block + Order Spree</span></td>
+            <td><strong>8.7 / 10</strong></td>
+            <td><span class="badge b-amber">TIER-2 WATCHLIST (Rank #7)</span></td>
+            <td><strong>Smart Money Front-Ran Order Spree:</strong> Sunil Singhania's Abakkus absorbed 15.98% of free float in Jul–Sep 2026 <em>before</em> the Oct order wins. Kept in Tier-2 Watchlist solely until 197-day inventory converts to cash flow.</td>
+          </tr>
+          <tr>
+            <td>12–15 Oct 2026</td>
+            <td><strong>Cupid Ltd</strong> (CUPID)</td>
+            <td>Financial portals highlight "+337.7% MoM surge (+61.47L shares) in Mutual Fund holdings of Cupid Ltd in Sep-2026"</td>
+            <td><span class="badge b-red">Media Hype / Index Noise</span></td>
+            <td><strong>2.0 / 10</strong></td>
+            <td><span class="badge b-red">FALSE SIGNAL — FILTERED OUT (Rank #10)</span></td>
+            <td><strong>Classic Beginner Trap Exposed:</strong> Correlation audit proves 98% of the buying came from passive Nifty Alpha 50 & Smallcap 250 ETFs forced to buy after index inclusion, while an active small-cap fund sold 100% of its stake at 303x P/E.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function showTab(idx) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+      document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+      filterVisibleTable();
+    }
+    function jumpToTab(tabIdx, filterKeyword) {
+      const searchBox = document.getElementById('searchInput');
+      searchBox.value = filterKeyword || '';
+      showTab(tabIdx);
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+    }
+    function switchHistoricalRun(runDate) {
+      const banner = document.getElementById('archiveBanner');
+      const label = document.getElementById('archiveDateLabel');
+      if (runDate === '2026-10-25') {
+        banner.style.display = 'none';
+      } else {
+        banner.style.display = 'block';
+        label.innerText = runDate;
+      }
+    }
+    function filterVisibleTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const activePanel = document.querySelector('.tab-panel.active');
+      if (!activePanel) return;
+      activePanel.querySelectorAll('tbody tr').forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
